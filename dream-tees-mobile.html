@@ -1,0 +1,334 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<title>Dream Tees</title>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700&family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
+<style>
+  *{box-sizing:border-box;margin:0;padding:0;}
+  body{background:#f7f7f5;font-family:'Inter',sans-serif;min-height:100vh;display:flex;flex-direction:column;}
+
+  /* HEADER */
+  .header{background:#fff;border-bottom:1px solid #e5e5e3;padding:14px 20px;display:flex;align-items:center;justify-content:space-between;}
+  .logo{font-family:'Playfair Display',serif;font-size:1.3rem;color:#1a1a1a;}
+  .logo span{color:#c41230;}
+  .logo sub{font-family:'Inter',sans-serif;font-size:0.55rem;font-weight:400;color:#888;display:block;letter-spacing:1px;text-transform:uppercase;margin-top:-2px;}
+
+  /* MAIN */
+  .main{flex:1;display:flex;flex-direction:column;align-items:center;padding:24px 20px;gap:20px;}
+
+  .tagline{font-size:0.78rem;color:#888;text-align:center;letter-spacing:1px;text-transform:uppercase;}
+
+  /* PROMPT AREA */
+  .prompt-card{width:100%;background:#fff;border:1px solid #e5e5e3;border-radius:6px;padding:16px;box-shadow:0 2px 12px rgba(0,0,0,0.06);}
+  .prompt-label{font-size:0.68rem;font-weight:700;color:#888;letter-spacing:1px;text-transform:uppercase;margin-bottom:10px;}
+  textarea{width:100%;border:1.5px solid #e5e5e3;border-radius:4px;padding:12px;font-family:'Inter',sans-serif;font-size:0.95rem;color:#1a1a1a;resize:none;outline:none;line-height:1.5;transition:border-color 0.2s;}
+  textarea:focus{border-color:#c41230;}
+  textarea::placeholder{color:#bbb;}
+
+  /* QUALITY TOGGLE */
+  .quality-row{display:flex;align-items:center;justify-content:space-between;margin-top:12px;}
+  .quality-label{font-size:0.68rem;color:#888;font-weight:600;}
+  .quality-btns{display:flex;gap:0;border:1px solid #e5e5e3;border-radius:20px;overflow:hidden;}
+  .q-btn{padding:5px 14px;font-size:0.68rem;font-weight:700;border:none;cursor:pointer;background:transparent;color:#888;transition:all 0.15s;letter-spacing:0.5px;}
+  .q-btn.active{background:#c41230;color:#fff;}
+
+  /* GENERATE BUTTON */
+  .gen-btn{width:100%;padding:16px;background:#c41230;border:none;border-radius:4px;color:#fff;font-family:'Inter',sans-serif;font-size:0.9rem;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:8px;transition:background 0.2s;margin-top:14px;}
+  .gen-btn:active{background:#a00f24;}
+  .gen-btn svg{flex-shrink:0;}
+
+  /* API KEY */
+  .key-row{display:flex;align-items:center;gap:6px;margin-top:10px;}
+  .key-dot{width:8px;height:8px;border-radius:50%;background:#e5e5e3;}
+  .key-dot.set{background:#16a34a;}
+  .key-link{font-size:0.7rem;color:#888;text-decoration:underline;cursor:pointer;background:none;border:none;font-family:'Inter',sans-serif;}
+
+  /* RESULT OVERLAY */
+  .overlay{display:none;position:fixed;inset:0;z-index:999;background:rgba(0,0,0,0.85);flex-direction:column;align-items:center;justify-content:flex-start;padding:20px;overflow-y:auto;}
+  .overlay.open{display:flex;}
+  .overlay-header{width:100%;display:flex;align-items:center;justify-content:space-between;margin-bottom:16px;}
+  .overlay-title{color:#fff;font-family:'Playfair Display',serif;font-size:1rem;}
+  .close-btn{background:rgba(255,255,255,0.15);border:none;color:#fff;width:36px;height:36px;border-radius:50%;font-size:1.1rem;cursor:pointer;display:flex;align-items:center;justify-content:center;}
+  .result-img{width:100%;max-width:500px;border-radius:6px;display:block;}
+  .overlay-actions{display:flex;gap:10px;margin-top:16px;width:100%;max-width:500px;}
+  .overlay-btn{flex:1;padding:13px;border:none;border-radius:4px;font-family:'Inter',sans-serif;font-size:0.8rem;font-weight:700;letter-spacing:1px;text-transform:uppercase;cursor:pointer;}
+  .overlay-btn.primary{background:#c41230;color:#fff;}
+  .overlay-btn.ghost{background:rgba(255,255,255,0.15);color:#fff;}
+
+  /* LOADING */
+  .loading-overlay{display:none;position:fixed;inset:0;z-index:1000;background:rgba(0,0,0,0.7);flex-direction:column;align-items:center;justify-content:center;gap:16px;}
+  .loading-overlay.open{display:flex;}
+  .spinner{width:44px;height:44px;border:3px solid rgba(255,255,255,0.2);border-top-color:#fff;border-radius:50%;animation:spin 0.8s linear infinite;}
+  @keyframes spin{to{transform:rotate(360deg);}}
+  .loading-text{color:#fff;font-size:0.9rem;font-weight:600;letter-spacing:0.5px;}
+  .loading-sub{color:rgba(255,255,255,0.6);font-size:0.75rem;}
+
+  /* API KEY MODAL */
+  .modal{display:none;position:fixed;inset:0;z-index:2000;background:rgba(0,0,0,0.6);align-items:flex-end;justify-content:center;}
+  .modal.open{display:flex;}
+  .modal-box{background:#fff;width:100%;max-width:500px;border-radius:12px 12px 0 0;padding:24px 20px 36px;}
+  .modal-title{font-family:'Playfair Display',serif;font-size:1.1rem;margin-bottom:6px;}
+  .modal-title span{color:#c41230;}
+  .modal-sub{font-size:0.78rem;color:#888;margin-bottom:16px;line-height:1.5;}
+  .modal-input{width:100%;border:1.5px solid #e5e5e3;border-radius:4px;padding:12px;font-family:monospace;font-size:0.85rem;outline:none;margin-bottom:12px;}
+  .modal-input:focus{border-color:#c41230;}
+  .modal-btn{width:100%;padding:14px;background:#c41230;border:none;border-radius:4px;color:#fff;font-weight:700;font-size:0.85rem;letter-spacing:1px;cursor:pointer;text-transform:uppercase;}
+
+  /* DEV PROMPT */
+  .dev-panel{width:100%;max-width:500px;margin-top:12px;border:1px solid #e2c97e;border-radius:4px;background:#fffbeb;overflow:hidden;display:none;}
+  .dev-panel.show{display:block;}
+  .dev-header{padding:8px 12px;font-size:0.65rem;font-weight:700;color:#92400e;letter-spacing:1px;text-transform:uppercase;cursor:pointer;display:flex;justify-content:space-between;align-items:center;}
+  .dev-body{padding:10px 12px;border-top:1px solid #e2c97e;font-family:monospace;font-size:0.68rem;color:#444;line-height:1.6;word-break:break-word;}
+</style>
+</head>
+<body>
+
+<!-- HEADER -->
+<div class="header">
+  <div class="logo">
+    DREAM <span>TEES</span>
+    <sub>Wear Your Imagination</sub>
+  </div>
+  <button class="key-link" onclick="showKeyModal()">⚙ API Key</button>
+</div>
+
+<!-- MAIN -->
+<div class="main">
+  <div class="tagline">✦ Describe your shirt idea</div>
+
+  <div class="prompt-card">
+    <div class="prompt-label">Your Idea</div>
+    <textarea id="promptInput" rows="4" placeholder="e.g. Bay City Sharks bowling team, red white and blue&#10;&#10;e.g. Neon wolf howling at the moon&#10;&#10;e.g. Vintage motorcycle club skull design"></textarea>
+
+    <div class="quality-row">
+      <span class="quality-label">Quality</span>
+      <div class="quality-btns">
+        <button class="q-btn" id="qLow" onclick="setQ('low')">Preview</button>
+        <button class="q-btn active" id="qMed" onclick="setQ('medium')">Premium</button>
+        <button class="q-btn" id="qHigh" onclick="setQ('high')">Production</button>
+      </div>
+    </div>
+
+    <button class="gen-btn" onclick="generate()">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>
+      Generate My Design
+    </button>
+
+    <div class="key-row">
+      <div class="key-dot" id="keyDot"></div>
+      <button class="key-link" onclick="showKeyModal()">OpenAI API Key</button>
+    </div>
+  </div>
+</div>
+
+<!-- LOADING -->
+<div class="loading-overlay" id="loadingOverlay">
+  <div class="spinner"></div>
+  <div class="loading-text" id="loadingText">GENERATING YOUR DESIGN...</div>
+  <div class="loading-sub" id="loadingSub">This usually takes 15-30 seconds</div>
+</div>
+
+<!-- RESULT OVERLAY -->
+<div class="overlay" id="resultOverlay">
+  <div class="overlay-header">
+    <div class="overlay-title">Your Design ✦</div>
+    <button class="close-btn" onclick="closeResult()">✕</button>
+  </div>
+  <img class="result-img" id="resultImg" src="" alt="Generated design"/>
+  <div class="overlay-actions">
+    <button class="overlay-btn ghost" onclick="closeResult()">New Design</button>
+    <button class="overlay-btn primary" onclick="saveImg()">Save Image</button>
+  </div>
+  <!-- DEV prompt panel -->
+  <div class="dev-panel" id="devPanel">
+    <div class="dev-header" onclick="toggleDev()">DEV — Prompt Sent <span id="devArrow">▼</span></div>
+    <div class="dev-body" id="devBody" style="display:block;"></div>
+  </div>
+</div>
+
+<!-- API KEY MODAL -->
+<div class="modal" id="keyModal">
+  <div class="modal-box">
+    <div class="modal-title">OpenAI <span>API Key</span></div>
+    <div class="modal-sub">Your key is stored locally on your device only. Never shared.</div>
+    <input class="modal-input" type="password" id="keyInput" placeholder="sk-..."/>
+    <button class="modal-btn" onclick="saveKey()">Save Key</button>
+  </div>
+</div>
+
+<script>
+var quality = 'medium';
+var COSTS = {low:0.011, medium:0.042, high:0.167};
+
+// ── QUALITY TOGGLE ──
+function setQ(mode) {
+  quality = mode;
+  var map = {low:'qLow', medium:'qMed', high:'qHigh'};
+  Object.keys(map).forEach(function(m) {
+    var btn = document.getElementById(map[m]);
+    if(btn) btn.className = 'q-btn' + (m === mode ? ' active' : '');
+  });
+}
+
+// ── API KEY ──
+function getKey() { return localStorage.getItem('dt_openai_key'); }
+function saveKey() {
+  var v = document.getElementById('keyInput').value.trim();
+  if(!v) return;
+  localStorage.setItem('dt_openai_key', v);
+  document.getElementById('keyModal').classList.remove('open');
+  updateKeyDot();
+}
+function showKeyModal() {
+  var existing = getKey();
+  if(existing) document.getElementById('keyInput').value = existing;
+  document.getElementById('keyModal').classList.add('open');
+}
+document.getElementById('keyModal').addEventListener('click', function(e) {
+  if(e.target === this) this.classList.remove('open');
+});
+function updateKeyDot() {
+  document.getElementById('keyDot').className = 'key-dot' + (getKey() ? ' set' : '');
+}
+updateKeyDot();
+
+// ── PROMPT BUILDER (mirrors main app layers) ──
+function buildPrompt(idea) {
+  var lower = idea.toLowerCase();
+
+  // Detect mascot and team
+  var mascots = ['shark','wolf','eagle','bear','lion','tiger','dragon','fox','snake','hawk','bull','panther'];
+  var mascot = null;
+  for(var i=0;i<mascots.length;i++) { if(lower.indexOf(mascots[i])!==-1){mascot='a '+mascots[i];break;} }
+
+  var teamMatch = idea.match(/(?:the\s+)((?:[A-Z][a-z]+\s+)+(?:[A-Z][a-z]+))/i) ||
+                  idea.match(/(?:for\s+(?:my\s+|the\s+)?)((?:[A-Z][a-z]+\s+)+(?:[A-Z][a-z]+))/i);
+  var teamName = teamMatch ? teamMatch[1].trim() : null;
+
+  var colors = ['red','blue','green','black','white','yellow','orange','purple','pink','gold','silver','navy'].filter(function(c){return lower.indexOf(c)!==-1;});
+
+  // Style detection
+  var style = '';
+  if(lower.match(/vintage|retro|distressed/)) style = 'vintage distressed screenprint';
+  else if(lower.match(/neon|glow|electric/)) style = 'vivid neon graphic';
+  else if(lower.match(/photo|realistic|cinematic/)) style = 'cinematic photorealistic';
+  else if(lower.match(/cartoon|comic/)) style = 'bold cartoon illustration';
+
+  // Text mode
+  var textMode = lower.match(/team|club|crew|league|bowling|sport|squad/) ? 'integrated' : 'none';
+
+  // SUBJECT
+  var subject = '';
+  if(mascot && teamName) {
+    var action = lower.match(/bowling/) ? 'gripping a bowling ball smashing pins with water splash' : 'in explosive athletic action';
+    subject = mascot + ' mascot ' + action + (teamName ? ', "' + teamName + '" team name in bold apparel lettering, large readable team lettering fully integrated' : '') + ', no additional text beyond what is specified' + (colors.length ? ', strict ' + colors.join(', ') + ' color palette — no other colors' : '');
+  } else if(teamName) {
+    subject = '"' + teamName + '" bold team apparel graphic' + (colors.length ? ', ' + colors.join(', ') + ' color palette' : '');
+  } else if(mascot) {
+    subject = mascot + ' — ' + idea + ', fierce dynamic pose, strong silhouette' + (colors.length ? ', ' + colors.join(', ') + ' color palette' : '');
+  } else {
+    subject = idea + (colors.length ? ', ' + colors.join(', ') + ' color palette' : '');
+  }
+
+  // CREATIVE
+  var creative = mascot && teamName
+    ? 'Oversized mascot exploding off the chest, layered action composition, dynamic motion lines, fearless apparel composition, confident negative space usage, strong central silhouette, iconic apparel graphic hierarchy. Aggressive athletic energy, commercial sportswear confidence.'
+    : 'Shirt-filling composition, dominant focal point, fearless apparel composition, confident negative space usage, strong central silhouette, iconic apparel graphic hierarchy. Bold visual impact, commercial apparel energy.';
+
+  // STYLE (render preset DNA)
+  var presetDNA = style
+    ? style + ' style, premium commercial sportswear illustration, elite athletic apparel graphic quality, modern sports-brand rendering'
+    : 'premium commercial sportswear illustration, elite athletic apparel graphic quality, modern sports-brand rendering, dynamic layered composition, advanced lighting and shadow depth, vivid high-contrast color separation, dimensional highlights, professional apparel print hierarchy, cinematic energy, modern vector-airbrush hybrid rendering';
+
+  // REFINEMENT
+  var refinement = mascot && mascot.match(/shark/)
+    ? 'Add natural shark-specific detail: smooth skin surface, sharp tooth definition, intense eye detail, realistic fin edge shading. Water splash droplets, foam, motion spray. Bowling ball scuffs, pin impact marks. ' + (teamName ? 'Treat text as typography — preserve exact spelling and letter shapes, add only subtle ink grain and crisp outlines. ' : '') + 'No brush strokes, no canvas texture, no painterly effects. No painterly surface on sports or mascot designs.'
+    : 'Add subtle screenprint ink grain, mild halftone texture in shadow areas, slight ink-coverage variation. Use a bold screenprint finish, not a painterly illustration finish. Keep the design crisp, bold, and apparel-ready. ' + (teamName ? 'Treat text as typography — preserve exact spelling, add only subtle print-production character. ' : '') + 'No brush strokes, no oil paint, no canvas texture, no painterly effects.';
+
+  // TEXT SAFETY
+  var text = textMode === 'integrated'
+    ? 'All text must be large, bold, and fully legible. Only include text explicitly specified — do not add slogans, taglines, or extra words.'
+    : 'No text. No lettering. No words. No numbers anywhere in the design.';
+
+  // PRINT + SYSTEM
+  var print = 'Large chest-filling front print. Designed for a white shirt.';
+  var system = 'Transparent background. Pure white background. No mockup. No shirt shape. No folded fabric. No watermark. No border rectangle.';
+
+  return [subject, creative, presetDNA, refinement, print, text, system].join(' ');
+}
+
+// ── GENERATE ──
+async function generate() {
+  var idea = document.getElementById('promptInput').value.trim();
+  if(!idea) { document.getElementById('promptInput').focus(); return; }
+
+  var key = getKey();
+  if(!key) { showKeyModal(); return; }
+
+  var prompt;
+  try {
+    prompt = buildPrompt(idea);
+  } catch(e) {
+    alert('Prompt build error: ' + e.message);
+    return;
+  }
+  window._lastMobilePrompt = prompt;
+
+  // Show loading
+  document.getElementById('loadingText').textContent = 'GENERATING YOUR DESIGN...';
+  document.getElementById('loadingSub').textContent = quality.toUpperCase() + ' quality · ~$' + COSTS[quality].toFixed(3);
+  document.getElementById('loadingOverlay').classList.add('open');
+
+  try {
+    var res = await fetch('https://api.openai.com/v1/images/generations', {
+      method: 'POST',
+      headers: {'Content-Type':'application/json','Authorization':'Bearer '+key},
+      body: JSON.stringify({model:'gpt-image-1', prompt:prompt, n:1, size:'1024x1024', quality:quality, output_format:'png'})
+    });
+    var data = await res.json();
+    if(data.error) throw new Error(data.error.message);
+
+    var imgData = data.data[0].b64_json || data.data[0].url;
+    var imgUrl = imgData.startsWith('http') ? imgData : 'data:image/png;base64,' + imgData;
+
+    document.getElementById('loadingOverlay').classList.remove('open');
+    document.getElementById('resultImg').src = imgUrl;
+    document.getElementById('devBody').textContent = prompt;
+    document.getElementById('devPanel').classList.add('show');
+    document.getElementById('resultOverlay').classList.add('open');
+
+  } catch(err) {
+    document.getElementById('loadingOverlay').classList.remove('open');
+    alert('Generation failed: ' + (err.message || 'Unknown error'));
+  }
+}
+
+function closeResult() {
+  document.getElementById('resultOverlay').classList.remove('open');
+}
+
+function saveImg() {
+  var src = document.getElementById('resultImg').src;
+  if(!src) return;
+  var a = document.createElement('a');
+  a.href = src;
+  a.download = 'dream-tees-design.png';
+  a.click();
+}
+
+function toggleDev() {
+  var body = document.getElementById('devBody');
+  var arrow = document.getElementById('devArrow');
+  body.style.display = body.style.display === 'none' ? 'block' : 'none';
+  arrow.textContent = body.style.display === 'none' ? '▶' : '▼';
+}
+
+// Enter key submits
+document.getElementById('promptInput').addEventListener('keydown', function(e) {
+  if(e.key === 'Enter' && e.metaKey) generate();
+});
+</script>
+</body>
+</html>
